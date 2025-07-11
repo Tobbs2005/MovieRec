@@ -1,0 +1,53 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+*.sqlite3
+
+# === Virtual Environment ===
+sbert-env/
+venv/
+.env/
+.env.*  # Optional: if using env files with suffixes
+
+# === Node / Frontend ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === FastAPI Cache ===
+*.db
+*.bak
+*.swp
+*.pid
+
+# === Data Files ===
+data/*.csv
+data/*.npy
+data/*.json
+data/*.tsv
+
+# === Jupyter / Notebook ===
+.ipynb_checkpoints/
+
+# === Mac & System Files ===
+.DS_Store
+Thumbs.db
+
+# === VSCode ===
+.vscode/
+*.code-workspace
+
+# === OS Logs ===
+logs/
+*.log
+backend/data/
+backend/movie_embeddings.npy
+movie_embeddings.npy
