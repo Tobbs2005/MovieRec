@@ -1,0 +1,68 @@
+### 🎬 Recommend Movie
+POST http://localhost:8000/recommend
+Content-Type: application/json
+
+{
+  "user_vector": null,
+  "seen_ids": [],
+  "liked_ids": [1, 2, 3]
+}
+
+### 👍 Feedback - Like
+POST http://localhost:8000/feedback
+Content-Type: application/json
+
+{
+  "user_vector": null,
+  "movie_id": 5,
+  "feedback": "like"
+}
+
+### 👎 Feedback - Dislike
+POST http://localhost:8000/feedback
+Content-Type: application/json
+
+{
+  "user_vector": null,
+  "movie_id": 5,
+  "feedback": "dislike"
+}
+
+### 🔍 Test Search for Iron Man in Action
+POST http://localhost:8000/search
+Content-Type: application/json
+
+{
+  "query": "Iron man fights terrorists in a high-tech suit",
+  "genre": "Action"
+}
+
+### Hybrid Search: exact match + genre
+POST http://localhost:8000/search
+Content-Type: application/json
+
+{
+  "query": "Iron Man",
+  "genre": "Action"
+}
+
+### Testing with multiple pre-liked ID
+POST http://localhost:8000/recommend
+Content-Type: application/json
+
+{
+  "user_vector": null,
+  "seen_ids": [],
+  "liked_ids": [99861, 47626, 8844]
+}
+
+### Testing with another to ensure different user vector
+POST http://localhost:8000/recommend
+Content-Type: application/json
+
+{
+  "user_vector": null,
+  "seen_ids": [],
+  "liked_ids": [99861, 5]
+}
+
