@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-import { useEffect, useState } from 'react';
-import MovieCard from './MovieCard';
-
-=======
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -11,7 +6,6 @@ import MovieCard from './MovieCard';
 const genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Thriller', 'Animation', 'Science Fiction', 'Fantasy'];
 const languages = ['en', 'fr', 'es', 'ja', 'ko', 'zh', 'de', 'hi'];
 
->>>>>>> 25fcd995174b754e3f75d3fc83522ddbddaf723c
 export default function SwipeRecommender({ preLikedIds }) {
   const [currentMovie, setCurrentMovie] = useState(null);
   const [userVector, setUserVector] = useState(null);
@@ -20,11 +14,6 @@ export default function SwipeRecommender({ preLikedIds }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-<<<<<<< HEAD
-  useEffect(() => {
-    if (preLikedIds) {
-      console.log("✅ Starting with liked IDs:", preLikedIds);
-=======
   const [genre, setGenre] = useState('');
   const [language, setLanguage] = useState('');
   const [yearStart, setYearStart] = useState(1980);
@@ -33,7 +22,6 @@ export default function SwipeRecommender({ preLikedIds }) {
 
   useEffect(() => {
     if (preLikedIds) {
->>>>>>> 25fcd995174b754e3f75d3fc83522ddbddaf723c
       fetchRecommendation(null, [], preLikedIds);
     }
   }, [preLikedIds]);
@@ -49,14 +37,11 @@ export default function SwipeRecommender({ preLikedIds }) {
           user_vector: vector,
           seen_ids: seen,
           liked_ids: liked,
-<<<<<<< HEAD
-=======
           genre,
           language,
           year_start: yearStart,
           year_end: yearEnd,
           adult,
->>>>>>> 25fcd995174b754e3f75d3fc83522ddbddaf723c
         }),
       });
       const data = await res.json();
@@ -115,12 +100,6 @@ export default function SwipeRecommender({ preLikedIds }) {
     await fetchRecommendation(userVector, updatedSeen, likedIds);
   };
 
-<<<<<<< HEAD
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
-
-  return (
-    <div style={{ maxWidth: '640px', margin: '0 auto' }}>
-=======
   return (
     <div style={{ maxWidth: '640px', margin: '0 auto' }}>
       {/* === Filters === */}
@@ -155,20 +134,14 @@ export default function SwipeRecommender({ preLikedIds }) {
       </div>
 
       {error && <p style={{ color: 'red' }}>{error}</p>}
->>>>>>> 25fcd995174b754e3f75d3fc83522ddbddaf723c
       {loading && <p>Loading...</p>}
 
       {currentMovie && !loading && (
         <>
-<<<<<<< HEAD
-          <MovieCard movie={currentMovie} liked={likedIds.includes(currentMovie.movieId)} onClick={() => {}} />
-=======
-          <MovieCard movie={currentMovie} liked={likedIds.includes(currentMovie.movieId)} />
->>>>>>> 25fcd995174b754e3f75d3fc83522ddbddaf723c
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
-            <button onClick={handleDislike} style={{ padding: '8px 16px', background: '#f87171', color: '#fff', borderRadius: '9999px' }}>👎 Dislike</button>
-            <button onClick={handleLike} style={{ padding: '8px 16px', background: '#4ade80', color: '#fff', borderRadius: '9999px' }}>👍 Like</button>
-          </div>
+          <SwipeCard onSwipeLeft={handleDislike} onSwipeRight={handleLike}>
+            <MovieCard movie={currentMovie} liked={likedIds.includes(currentMovie.movieId)} />
+          </SwipeCard>
+
         </>
       )}
     </div>

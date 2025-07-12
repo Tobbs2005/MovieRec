@@ -1,8 +1,3 @@
-/**
- * UserPreference.jsx
- * Handles search input, genre selection, and pre-liking movies.
- */
-
 import { useState } from 'react';
 import MovieCard from './MovieCard';
 
@@ -15,6 +10,10 @@ const GENRES = [
 export default function UserPreference({ onStart }) {
   const [query, setQuery] = useState('');
   const [genre, setGenre] = useState('');
+  const [language, setLanguage] = useState('');
+  const [yearStart, setYearStart] = useState('');
+  const [yearEnd, setYearEnd] = useState('');
+  const [adult, setAdult] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [likedIds, setLikedIds] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,7 +27,14 @@ export default function UserPreference({ onStart }) {
       const res = await fetch('http://localhost:8000/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, genre })
+        body: JSON.stringify({
+          query,
+          genre,
+          language,
+          year_start: yearStart ? parseInt(yearStart) : undefined,
+          year_end: yearEnd ? parseInt(yearEnd) : undefined,
+          adult
+        })
       });
       const data = await res.json();
       if (!data.error) {
@@ -52,39 +58,104 @@ export default function UserPreference({ onStart }) {
   };
 
   return (
-    <div>
+    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '16px' }}>
       <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search a movie by description..."
-        className="border px-3 py-2 rounded w-full mb-2"
+        placeholder="Search a movie by title, description, or genre..."
+        style={{
+          border: '1px solid #ccc',
+          padding: '10px',
+          borderRadius: '8px',
+          width: '100%',
+          marginBottom: '10px'
+        }}
       />
       <input
         list="genre-list"
         value={genre}
         onChange={(e) => setGenre(e.target.value)}
         placeholder="Filter by genre (optional)"
-        className="border px-3 py-2 rounded w-full mb-2"
+        style={{
+          border: '1px solid #ccc',
+          padding: '10px',
+          borderRadius: '8px',
+          width: '100%',
+          marginBottom: '10px'
+        }}
       />
       <datalist id="genre-list">
         {GENRES.map((g) => (
           <option key={g} value={g} />
         ))}
       </datalist>
+
+      <input
+        type="text"
+        value={language}
+        onChange={(e) => setLanguage(e.target.value)}
+        placeholder="Language (e.g. en, fr, zh)"
+        style={{
+          border: '1px solid #ccc',
+          padding: '10px',
+          borderRadius: '8px',
+          width: '100%',
+          marginBottom: '10px'
+        }}
+      />
+
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+        <input
+          type="number"
+          placeholder="Start year"
+          value={yearStart}
+          onChange={(e) => setYearStart(e.target.value)}
+          style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
+        />
+        <input
+          type="number"
+          placeholder="End year"
+          value={yearEnd}
+          onChange={(e) => setYearEnd(e.target.value)}
+          style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
+        />
+      </div>
+
+      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+        <input
+          type="checkbox"
+          checked={adult}
+          onChange={(e) => setAdult(e.target.checked)}
+        />
+        Include adult content
+      </label>
+
       <button
         onClick={handleSearch}
-        className="px-4 py-2 bg-blue-200 hover:bg-blue-300 rounded-full font-semibold w-full mb-4"
+        style={{
+          padding: '10px 16px',
+          backgroundColor: '#3b82f6',
+          color: 'white',
+          border: 'none',
+          borderRadius: '9999px',
+          fontWeight: 'bold',
+          width: '100%',
+          marginBottom: '24px',
+          cursor: 'pointer'
+        }}
       >
         🔍 Search
       </button>
 
       {loading && <p>Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
 
       {searchResults.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-2">✨ Found Movies (click to like)</h2>
+        <div>
+          <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px' }}>
+            ✨ Found Movies (click to like)
+          </h2>
           {searchResults.map((movie) => (
             <MovieCard
               key={movie.movieId}
@@ -95,7 +166,17 @@ export default function UserPreference({ onStart }) {
           ))}
           <button
             onClick={() => onStart(likedIds)}
-            className="mt-4 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full font-semibold w-full"
+            style={{
+              marginTop: '20px',
+              padding: '10px 16px',
+              backgroundColor: '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '9999px',
+              fontWeight: 'bold',
+              width: '100%',
+              cursor: 'pointer'
+            }}
           >
             🚀 Start Swiping
           </button>

@@ -1,11 +1,7 @@
-/**
- * App.jsx
- * The main app page that toggles between UserPreference and SwipeRecommender.
- */
-
 import { useState } from 'react';
 import UserPreference from './components/UserPreference';
 import SwipeRecommender from './components/SwipeReccomender';
+import './App.css'; 
 
 export default function App() {
   const [likedIds, setLikedIds] = useState([]);
@@ -17,7 +13,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="app-container">
       {!started ? (
         <UserPreference onStart={handleStartSwiping} />
       ) : (
