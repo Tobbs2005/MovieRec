@@ -15,6 +15,7 @@ sbert-env/
 venv/
 .env/
 .env.*  # Optional: if using env files with suffixes
+.env
 
 # === Node / Frontend ===
 node_modules/

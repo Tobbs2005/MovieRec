@@ -1,5 +1,10 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import MovieCard from './MovieCard';
+
+const genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Thriller', 'Animation', 'Science Fiction', 'Fantasy'];
+const languages = ['en', 'fr', 'es', 'ja', 'ko', 'zh', 'de', 'hi'];
 
 export default function SwipeRecommender({ preLikedIds }) {
   const [currentMovie, setCurrentMovie] = useState(null);
@@ -9,9 +14,14 @@ export default function SwipeRecommender({ preLikedIds }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [genre, setGenre] = useState('');
+  const [language, setLanguage] = useState('');
+  const [yearStart, setYearStart] = useState(1980);
+  const [yearEnd, setYearEnd] = useState(2024);
+  const [adult, setAdult] = useState(false);
+
   useEffect(() => {
     if (preLikedIds) {
-      console.log("✅ Starting with liked IDs:", preLikedIds);
       fetchRecommendation(null, [], preLikedIds);
     }
   }, [preLikedIds]);
@@ -27,6 +37,11 @@ export default function SwipeRecommender({ preLikedIds }) {
           user_vector: vector,
           seen_ids: seen,
           liked_ids: liked,
+          genre,
+          language,
+          year_start: yearStart,
+          year_end: yearEnd,
+          adult,
         }),
       });
       const data = await res.json();
@@ -85,15 +100,45 @@ export default function SwipeRecommender({ preLikedIds }) {
     await fetchRecommendation(userVector, updatedSeen, likedIds);
   };
 
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
-
   return (
     <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+      {/* === Filters === */}
+      <div style={{ display: 'grid', gap: '12px', marginBottom: '16px' }}>
+        <select value={genre} onChange={(e) => setGenre(e.target.value)}>
+          <option value="">All Genres</option>
+          {genres.map((g) => (
+            <option key={g} value={g}>{g}</option>
+          ))}
+        </select>
+
+        <select value={language} onChange={(e) => setLanguage(e.target.value)}>
+          <option value="">All Languages</option>
+          {languages.map((l) => (
+            <option key={l} value={l}>{l}</option>
+          ))}
+        </select>
+
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <label>Year: {yearStart} – {yearEnd}</label>
+          <input type="range" min="1900" max="2025" value={yearStart} onChange={(e) => setYearStart(Number(e.target.value))} />
+          <input type="range" min="1900" max="2025" value={yearEnd} onChange={(e) => setYearEnd(Number(e.target.value))} />
+        </div>
+
+        <label>
+          <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} /> Include adult content
+        </label>
+
+        <button onClick={() => fetchRecommendation(userVector, seenIds, likedIds)} style={{ background: '#3b82f6', color: 'white', padding: '8px', borderRadius: '8px' }}>
+          🔍 Apply Filters
+        </button>
+      </div>
+
+      {error && <p style={{ color: 'red' }}>{error}</p>}
       {loading && <p>Loading...</p>}
 
       {currentMovie && !loading && (
         <>
-          <MovieCard movie={currentMovie} liked={likedIds.includes(currentMovie.movieId)} onClick={() => {}} />
+          <MovieCard movie={currentMovie} liked={likedIds.includes(currentMovie.movieId)} />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
             <button onClick={handleDislike} style={{ padding: '8px 16px', background: '#f87171', color: '#fff', borderRadius: '9999px' }}>👎 Dislike</button>
             <button onClick={handleLike} style={{ padding: '8px 16px', background: '#4ade80', color: '#fff', borderRadius: '9999px' }}>👍 Like</button>
