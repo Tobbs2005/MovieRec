@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import MovieCard from './MovieCard';
+import SwipeCard from './SwipeCard';
 
 const genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Thriller', 'Animation', 'Science Fiction', 'Fantasy'];
 const languages = ['en', 'fr', 'es', 'ja', 'ko', 'zh', 'de', 'hi'];
@@ -145,11 +146,13 @@ const sendFeedback = async (movieId, feedbackType) => {
 
       {currentMovie && !loading && (
         <>
-          <MovieCard movie={currentMovie} liked={likedIds.includes(currentMovie.movieId)} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
-            <button onClick={handleDislike} style={{ padding: '8px 16px', background: '#f87171', color: '#fff', borderRadius: '9999px' }}>👎 Dislike</button>
-            <button onClick={handleLike} style={{ padding: '8px 16px', background: '#4ade80', color: '#fff', borderRadius: '9999px' }}>👍 Like</button>
-          </div>
+        <SwipeCard onSwipeLeft={handleDislike} onSwipeRight={handleLike}>
+            <MovieCard movie={currentMovie} liked={likedIds.includes(currentMovie.movieId)} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
+              <button onClick={handleDislike} style={{ padding: '8px 16px', background: '#f87171', color: '#fff', borderRadius: '9999px' }}>👎 Dislike</button>
+              <button onClick={handleLike} style={{ padding: '8px 16px', background: '#4ade80', color: '#fff', borderRadius: '9999px' }}>👍 Like</button>
+            </div>
+          </SwipeCard>
         </>
       )}
     </div>
