@@ -6,7 +6,7 @@ import requests
 from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
@@ -25,14 +25,13 @@ embedding_path = os.path.join(data_dir, "movie_embeddings.npy")
 
 # === Load Data ===
 df = pd.read_csv(movies_path)
-df.columns = df.columns.str.strip().str.lower()
-print("\U0001F4CA Columns in df:", df.columns.tolist())
-
+df.columns = df.columns.str.strip()
 ratings = pd.read_csv(ratings_path)
-ratings.columns = ratings.columns.str.strip().str.lower()
+ratings.columns = ratings.columns.str.strip()
 
+# === Clean and normalize ===
 df = df[df["overview"].notnull()].reset_index(drop=True)
-df["movieid"] = df["movieid"].astype("Int64")
+df["movieId"] = df["movieId"].astype("Int64")
 
 # === Embeddings ===
 if os.path.exists(embedding_path):
@@ -91,8 +90,8 @@ def fetch_tmdb_poster(title):
 @app.post("/recommend")
 def recommend(payload: RecommendPayload):
     if not payload.user_vector and payload.liked_ids:
-        vectors = [embeddings[df.index[df["movieid"] == mid][0]]
-                   for mid in payload.liked_ids if not df.index[df["movieid"] == mid].empty]
+        vectors = [embeddings[df.index[df["movieId"] == mid][0]]
+                   for mid in payload.liked_ids if not df.index[df["movieId"] == mid].empty]
         taste_vector = np.mean(vectors, axis=0) if vectors else baseline_vector
     else:
         taste_vector = np.array(payload.user_vector if payload.user_vector else baseline_vector)
@@ -101,12 +100,12 @@ def recommend(payload: RecommendPayload):
     sbert_sim = cosine_similarity([taste_vector], embeddings)[0]
 
     collab_sim = np.zeros(len(df))
-    liked_users = ratings[(ratings["movieid"].isin(payload.liked_ids)) & (ratings["rating"] >= 4.0)]["userid"].unique()
-    recommended = ratings[(ratings["userid"].isin(liked_users)) & (ratings["rating"] >= 4.0)]["movieid"]
+    liked_users = ratings[(ratings["movieId"].isin(payload.liked_ids)) & (ratings["rating"] >= 4.0)]["userId"].unique()
+    recommended = ratings[(ratings["userId"].isin(liked_users)) & (ratings["rating"] >= 4.0)]["movieId"]
     scores = recommended.value_counts(normalize=True)
 
     for mid, score in scores[scores > 0.01].items():
-        idx = df.index[df["movieid"] == mid]
+        idx = df.index[df["movieId"] == mid]
         if not idx.empty:
             collab_sim[idx[0]] = score
 
@@ -120,7 +119,7 @@ def recommend(payload: RecommendPayload):
     for idx in sorted_indices:
         movie = df.loc[idx]
 
-        if movie["movieid"] in seen_set:
+        if movie["movieId"] in seen_set:
             continue
 
         if payload.genre and payload.genre.lower() not in str(movie.get("genres", "")).lower():
@@ -151,7 +150,7 @@ def recommend(payload: RecommendPayload):
                 "genres": movie.get("genres", "N/A"),
                 "release_date": movie.get("release_date", "N/A"),
                 "poster_path": poster_url,
-                "movieid": int(movie.get("movieid"))
+                "movieId": int(movie.get("movieId"))
             },
             "user_vector": taste_vector.tolist()
         }
@@ -203,7 +202,7 @@ def hybrid_search(
                 "genres": m.get("genres", "N/A"),
                 "release_date": m.get("release_date", "N/A"),
                 "poster_path": fetch_tmdb_poster(m.get("title")),
-                "movieId": int(m["movieid"]),
+                "movieId": int(m["movieId"]),
             }
             for m in top_matches
         ]
@@ -211,14 +210,24 @@ def hybrid_search(
 
 # === Feedback Endpoint ===
 @app.post("/feedback")
-def feedback(payload: FeedbackPayload):
-    vec = np.array(payload.user_vector) if payload.user_vector else baseline_vector
-    idx = df.index[df["movieid"] == payload.movie_id]
-    if idx.empty:
-        return {"error": "Invalid movie ID."}
+async def feedback(payload: FeedbackPayload, request: Request):
+    try:
+        vec = np.array(payload.user_vector) if payload.user_vector else baseline_vector
+        idx = df.index[df["movieId"] == payload.movie_id]
+        if idx.empty:
+            return {"error": "Invalid movie ID."}
 
-    movie_vec = embeddings[idx[0]]
-    alpha = 0.7
-    new_vec = (1 - alpha) * vec + alpha * movie_vec if payload.feedback == "like" else (1 + alpha) * vec - alpha * movie_vec
-    new_vec = new_vec / np.linalg.norm(new_vec)
-    return {"user_vector": new_vec.tolist()}
+        movie_vec = embeddings[idx[0]]
+        alpha = 0.7
+        if payload.feedback == "like":
+            new_vec = (1 - alpha) * vec + alpha * movie_vec
+        elif payload.feedback == "dislike":
+            new_vec = (1 + alpha) * vec - alpha * movie_vec
+        else:
+            return {"error": "Invalid feedback type."}
+
+        new_vec = new_vec / np.linalg.norm(new_vec)
+        return {"user_vector": new_vec.tolist()}
+    except Exception as e:
+        print("❌ Feedback endpoint error:", str(e))
+        return {"error": "Exception occurred while processing feedback."}

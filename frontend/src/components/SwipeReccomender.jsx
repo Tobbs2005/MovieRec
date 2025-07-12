@@ -60,25 +60,32 @@ export default function SwipeRecommender({ preLikedIds }) {
     }
   };
 
-  const sendFeedback = async (movieId, feedbackType) => {
-    try {
-      const res = await fetch('http://localhost:8000/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_vector: userVector,
-          movie_id: movieId,
-          feedback: feedbackType,
-        }),
-      });
-      const data = await res.json();
-      if (data.user_vector) {
-        setUserVector(data.user_vector);
-      }
-    } catch (err) {
-      console.error("❌ Feedback error:", err);
+const sendFeedback = async (movieId, feedbackType) => {
+  try {
+    console.log("🛰️ Sending feedback:", { movieId, feedbackType, userVector });
+    const res = await fetch('http://localhost:8000/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_vector: userVector,
+        movie_id: movieId,
+        feedback: feedbackType,
+      }),
+    });
+    const data = await res.json();
+    console.log("✅ Feedback response:", data);
+
+    if (data.user_vector) {
+      setUserVector(data.user_vector);
+    } else {
+      console.warn("⚠️ No user_vector returned from feedback");
     }
-  };
+  } catch (err) {
+    console.error("❌ Feedback error:", err);
+  }
+};
+
+
 
   const handleLike = async () => {
     if (!currentMovie) return;
