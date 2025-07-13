@@ -1,0 +1,65 @@
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.input,
+.genreInput,
+.languageInput,
+.yearInput {
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 8px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.yearRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  width: 100%;
+  
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.searchButton {
+  padding: 10px 16px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  font-weight: bold;
+  width: 100%;
+  margin-bottom: 24px;
+  cursor: pointer;
+}
+
+.error {
+  color: red;
+}
+
+.resultsTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.startButton {
+  margin-top: 20px;
+  padding: 10px 16px;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  font-weight: bold;
+  width: 100%;
+  cursor: pointer;
+}

@@ -165,7 +165,9 @@ def hybrid_search(
         if year_end:
             results = results[results["release_year"] <= year_end]
     if "adult" in results.columns and adult is not None:
-        results = results[results["adult"] == adult]
+        # Non adult content
+        if (not adult):
+          results = results[results["adult"] == adult]
 
     top_matches = results.head(5).to_dict(orient="records") if not results.empty else []
     return {

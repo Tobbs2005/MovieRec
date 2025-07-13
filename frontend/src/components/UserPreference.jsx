@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import MovieCard from './MovieCard';
+import style from './UserPreference.module.css';
 
 const GENRES = [
   "Action", "Adventure", "Animation", "Children", "Comedy", "Crime",
@@ -58,130 +59,87 @@ export default function UserPreference({ onStart }) {
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '16px' }}>
+  <div className={style.container}>
+    <input
+      type="text"
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
+      placeholder="Search a movie by title, description, or genre..."
+      className={style.input}
+    />
+    <input
+      list="genre-list"
+      value={genre}
+      onChange={(e) => setGenre(e.target.value)}
+      placeholder="Filter by genre (optional)"
+      className={style.genreInput}
+    />
+    <datalist id="genre-list">
+      {GENRES.map((g) => (
+        <option key={g} value={g} />
+      ))}
+    </datalist>
+
+    <input
+      type="text"
+      value={language}
+      onChange={(e) => setLanguage(e.target.value)}
+      placeholder="Language (e.g. en, fr, zh)"
+      className={style.languageInput}
+    />
+
+    <div className={style.yearRow}>
       <input
-        type="text"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search a movie by title, description, or genre..."
-        style={{
-          border: '1px solid #ccc',
-          padding: '10px',
-          borderRadius: '8px',
-          width: '100%',
-          marginBottom: '10px'
-        }}
+        type="number"
+        placeholder="Start year"
+        value={yearStart}
+        onChange={(e) => setYearStart(e.target.value)}
+        className={style.yearInput}
       />
       <input
-        list="genre-list"
-        value={genre}
-        onChange={(e) => setGenre(e.target.value)}
-        placeholder="Filter by genre (optional)"
-        style={{
-          border: '1px solid #ccc',
-          padding: '10px',
-          borderRadius: '8px',
-          width: '100%',
-          marginBottom: '10px'
-        }}
+        type="number"
+        placeholder="End year"
+        value={yearEnd}
+        onChange={(e) => setYearEnd(e.target.value)}
+        className={style.yearInput}
       />
-      <datalist id="genre-list">
-        {GENRES.map((g) => (
-          <option key={g} value={g} />
-        ))}
-      </datalist>
-
-      <input
-        type="text"
-        value={language}
-        onChange={(e) => setLanguage(e.target.value)}
-        placeholder="Language (e.g. en, fr, zh)"
-        style={{
-          border: '1px solid #ccc',
-          padding: '10px',
-          borderRadius: '8px',
-          width: '100%',
-          marginBottom: '10px'
-        }}
-      />
-
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-        <input
-          type="number"
-          placeholder="Start year"
-          value={yearStart}
-          onChange={(e) => setYearStart(e.target.value)}
-          style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
-        />
-        <input
-          type="number"
-          placeholder="End year"
-          value={yearEnd}
-          onChange={(e) => setYearEnd(e.target.value)}
-          style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
-        />
-      </div>
-
-      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-        <input
-          type="checkbox"
-          checked={adult}
-          onChange={(e) => setAdult(e.target.checked)}
-        />
-        Include adult content
-      </label>
-
-      <button
-        onClick={handleSearch}
-        style={{
-          padding: '10px 16px',
-          backgroundColor: '#3b82f6',
-          color: 'white',
-          border: 'none',
-          borderRadius: '9999px',
-          fontWeight: 'bold',
-          width: '100%',
-          marginBottom: '24px',
-          cursor: 'pointer'
-        }}
-      >
-        🔍 Search
-      </button>
-
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-
-      {searchResults.length > 0 && (
-        <div>
-          <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px' }}>
-            ✨ Found Movies (click to like)
-          </h2>
-          {searchResults.map((movie) => (
-            <MovieCard
-              key={movie.movieId}
-              movie={movie}
-              liked={likedIds.includes(movie.movieId)}
-              onClick={() => toggleLike(movie.movieId)}
-            />
-          ))}
-          <button
-            onClick={() => onStart(likedIds)}
-            style={{
-              marginTop: '20px',
-              padding: '10px 16px',
-              backgroundColor: '#10b981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '9999px',
-              fontWeight: 'bold',
-              width: '100%',
-              cursor: 'pointer'
-            }}
-          >
-            🚀 Start Swiping
-          </button>
-        </div>
-      )}
     </div>
-  );
+
+    <label className={style.checkboxRow}>
+      <input
+        type="checkbox"
+        checked={adult}
+        onChange={(e) => setAdult(e.target.checked)}
+      />
+      Include adult content
+    </label>
+
+    <button onClick={handleSearch} className={style.searchButton}>
+      🔍 Search
+    </button>
+
+    {loading && <p>Loading...</p>}
+    {error && <p className={style.error}>{error}</p>}
+
+    {searchResults.length > 0 && (
+      <div>
+        <h2 className={style.resultsTitle}>✨ Found Movies (click to like)</h2>
+        {searchResults.map((movie) => (
+          <MovieCard
+            key={movie.movieId}
+            movie={movie}
+            liked={likedIds.includes(movie.movieId)}
+            onClick={() => toggleLike(movie.movieId)}
+          />
+        ))}
+        <button
+          onClick={() => onStart(likedIds)}
+          className={style.startButton}
+        >
+          🚀 Start Swiping
+        </button>
+      </div>
+    )}
+  </div>
+);
 }

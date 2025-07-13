@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import MovieCard from './MovieCard';
+import SwipeCard from './SwipeCard';
 
 const genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Thriller', 'Animation', 'Science Fiction', 'Fantasy'];
 const languages = ['en', 'fr', 'es', 'ja', 'ko', 'zh', 'de', 'hi'];
@@ -119,9 +120,10 @@ export default function SwipeRecommender({ preLikedIds }) {
         </select>
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <label>Year: {yearStart} – {yearEnd}</label>
-          <input type="range" min="1900" max="2025" value={yearStart} onChange={(e) => setYearStart(Number(e.target.value))} />
-          <input type="range" min="1900" max="2025" value={yearEnd} onChange={(e) => setYearEnd(Number(e.target.value))} />
+          <label>Year: </label>
+          <input type="number" min="1900" max="2025" value={yearStart} onChange={(e) => setYearStart(Number(e.target.value))} />
+          <label> - </label>
+          <input type="number" min="1900" max="2025" value={yearEnd} onChange={(e) => setYearEnd(Number(e.target.value))} />
         </div>
 
         <label>
