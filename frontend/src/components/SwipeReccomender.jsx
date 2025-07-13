@@ -23,7 +23,7 @@ export default function SwipeRecommender({ preLikedIds }) {
 
   useEffect(() => {
     if (preLikedIds) {
-      fetchRecommendation(null, [], preLikedIds);
+      fetchRecommendation(userVector, seenIds, preLikedIds);
     }
   }, [preLikedIds]);
 
@@ -31,6 +31,7 @@ export default function SwipeRecommender({ preLikedIds }) {
     try {
       setLoading(true);
       setError(null);
+
       const res = await fetch('http://localhost:8000/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -45,7 +46,23 @@ export default function SwipeRecommender({ preLikedIds }) {
           adult,
         }),
       });
-      const data = await res.json();
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('❌ Backend error:', res.status, text);
+        setError(`Error ${res.status}: ${text}`);
+        return;
+      }
+
+      const text = await res.text();
+      if (!text) {
+        setError('Empty response from backend');
+        console.error('❌ No content returned from /recommend');
+        return;
+      }
+
+      const data = JSON.parse(text);
+
       if (!data.error) {
         setCurrentMovie(data.movie);
         setUserVector(data.user_vector);
@@ -54,8 +71,8 @@ export default function SwipeRecommender({ preLikedIds }) {
         setCurrentMovie(null);
       }
     } catch (err) {
-      console.error("❌ Error fetching recommendation:", err);
-      setError("Failed to fetch recommendation");
+      console.error('❌ JSON parse or network error:', err);
+      setError('Unexpected response format or connection error');
     } finally {
       setLoading(false);
     }
@@ -67,38 +84,41 @@ export default function SwipeRecommender({ preLikedIds }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_vector: userVector,
           movie_id: movieId,
           feedback: feedbackType,
+          user_vector: userVector,
         }),
       });
+
       const data = await res.json();
       if (data.user_vector) {
-        setUserVector(data.user_vector);
+        setUserVector(data.user_vector); // still set for UI consistency
+        return data.user_vector;
       }
     } catch (err) {
-      console.error("❌ Feedback error:", err);
+      console.error('❌ Feedback error:', err);
     }
+    return userVector; // fallback to current if something fails
   };
 
   const handleLike = async () => {
     if (!currentMovie) return;
     const id = currentMovie.movieId;
-    await sendFeedback(id, 'like');
+    const updatedVector = await sendFeedback(id, 'like');
     const updatedSeen = [...seenIds, id];
     const updatedLiked = [...likedIds, id];
     setSeenIds(updatedSeen);
     setLikedIds(updatedLiked);
-    await fetchRecommendation(userVector, updatedSeen, updatedLiked);
+    await fetchRecommendation(updatedVector, updatedSeen, updatedLiked);
   };
 
   const handleDislike = async () => {
     if (!currentMovie) return;
     const id = currentMovie.movieId;
-    await sendFeedback(id, 'dislike');
+    const updatedVector = await sendFeedback(id, 'dislike');
     const updatedSeen = [...seenIds, id];
     setSeenIds(updatedSeen);
-    await fetchRecommendation(userVector, updatedSeen, likedIds);
+    await fetchRecommendation(updatedVector, updatedSeen, likedIds);
   };
 
   return (
@@ -130,7 +150,10 @@ export default function SwipeRecommender({ preLikedIds }) {
           <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} /> Include adult content
         </label>
 
-        <button onClick={() => fetchRecommendation(userVector, seenIds, likedIds)} style={{ background: '#3b82f6', color: 'white', padding: '8px', borderRadius: '8px' }}>
+        <button
+          onClick={() => fetchRecommendation(userVector, seenIds, likedIds)}
+          style={{ background: '#3b82f6', color: 'white', padding: '8px', borderRadius: '8px' }}
+        >
           🔍 Apply Filters
         </button>
       </div>
@@ -139,12 +162,9 @@ export default function SwipeRecommender({ preLikedIds }) {
       {loading && <p>Loading...</p>}
 
       {currentMovie && !loading && (
-        <>
-          <SwipeCard onSwipeLeft={handleDislike} onSwipeRight={handleLike}>
-            <MovieCard movie={currentMovie} liked={likedIds.includes(currentMovie.movieId)} />
-          </SwipeCard>
-
-        </>
+        <SwipeCard onSwipeLeft={handleDislike} onSwipeRight={handleLike}>
+          <MovieCard movie={currentMovie} liked={likedIds.includes(currentMovie.movieId)} />
+        </SwipeCard>
       )}
     </div>
   );

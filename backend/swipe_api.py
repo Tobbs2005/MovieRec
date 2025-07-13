@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, Body, Request
+from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
@@ -75,6 +75,19 @@ def recommend(payload: RecommendPayload):
     similarity_scores = cosine_similarity([taste_vector], embeddings)[0]
 
     seen_set = set(payload.seen_ids + payload.liked_ids)
+
+    # === DISLIKE BOOST: penalize all movies similar to disliked ones ===
+    for mid in payload.seen_ids:
+        if mid in payload.liked_ids:
+            continue
+
+        idx = df.index[df["id"] == mid]
+        if not idx.empty:
+            disliked_vec = embeddings[idx[0]]
+            sims_to_disliked = cosine_similarity([disliked_vec], embeddings)[0]
+            # Subtract weighted similarity from overall scores
+            similarity_scores -= 0.3 * sims_to_disliked  # 🔧 tune weight (try 0.3–0.7)
+
     sorted_indices = np.argsort(similarity_scores)[::-1]
 
     for idx in sorted_indices:
@@ -113,6 +126,7 @@ def recommend(payload: RecommendPayload):
 
     return {"error": "No more unseen movies matching the filters."}
 
+
 # === Feedback Endpoint ===
 @app.post("/feedback")
 def feedback(payload: FeedbackPayload):
@@ -122,16 +136,25 @@ def feedback(payload: FeedbackPayload):
         return {"error": "Movie not found"}
 
     movie_vec = embeddings[idx[0]]
-    alpha = 0.7
+    alpha = 0.2
+
+    # Debug print for testing feedback effect
+    print("\n--- Feedback Debug ---")
+    print("Feedback:", payload.feedback)
+    print("Movie ID:", payload.movie_id)
+    print("Before similarity:", cosine_similarity([vec], [movie_vec])[0][0])
 
     if payload.feedback == "like":
         updated = (1 - alpha) * vec + alpha * movie_vec
     elif payload.feedback == "dislike":
-        updated = (1 + alpha) * vec - alpha * movie_vec
+        updated = vec - alpha * movie_vec
     else:
         return {"error": "Invalid feedback type"}
 
     updated = updated / np.linalg.norm(updated)
+    print("After similarity:", cosine_similarity([updated], [movie_vec])[0][0])
+    print("--- End Debug ---\n")
+
     return {"user_vector": updated.tolist()}
 
 # === Search Endpoint ===
@@ -165,9 +188,8 @@ def hybrid_search(
         if year_end:
             results = results[results["release_year"] <= year_end]
     if "adult" in results.columns and adult is not None:
-        # Non adult content
-        if (not adult):
-          results = results[results["adult"] == adult]
+        if not adult:
+            results = results[results["adult"] == adult]
 
     top_matches = results.head(5).to_dict(orient="records") if not results.empty else []
     return {
