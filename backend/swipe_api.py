@@ -67,31 +67,46 @@ class FeedbackPayload(BaseModel):
 def recommend(payload: RecommendPayload):
     seen_set = set(payload.seen_ids + payload.liked_ids)
 
-    if payload.liked_ids:
-        vectors = [embeddings[idx] for mid in payload.liked_ids for idx in df.index[df["id"] == mid]]
-        taste_vector = np.mean(vectors, axis=0) if vectors else embeddings.mean(axis=0)
-    else:
-        # Fallback to popular movie
-        candidates = df[df['popularity'] > df['popularity'].quantile(0.9)]
-        movie = candidates.sample(1).iloc[0]
-        return {
-            "movie": {
-                "movieId": int(movie["id"]),
-                "title": movie["title"],
-                "genres": movie["genres"],
-                "overview": movie["overview"],
-                "release_date": movie["release_date"],
-                "poster_path": "https://image.tmdb.org/t/p/w185" + movie.get("poster_path", ""),
-            },
-            "user_vector": None
-        }
+    # Onboarding mode: < 5 liked movies
+    if len(payload.liked_ids) < 5:
+        popular = df[df['popularity'] > df['popularity'].quantile(0.95)]
+        diverse_pool = popular.drop_duplicates(subset='genres')
+        sampled = diverse_pool.sample(n=min(50, len(diverse_pool)), random_state=random.randint(0, 10000))
+        for _, movie in sampled.iterrows():
+            if movie['id'] not in seen_set:
+                return {
+                    "movie": {
+                        "movieId": int(movie["id"]),
+                        "title": movie["title"],
+                        "genres": movie["genres"],
+                        "overview": movie["overview"],
+                        "release_date": movie["release_date"],
+                        "poster_path": "https://image.tmdb.org/t/p/w185" + movie.get("poster_path", ""),
+                    },
+                    "user_vector": None
+                }
+        return {"error": "No onboarding movies left"}
 
+    # Normal mode: >= 10 liked movies
+    vectors = [embeddings[idx] for mid in payload.liked_ids for idx in df.index[df["id"] == mid]]
+    taste_vector = np.mean(vectors, axis=0)
     taste_vector = taste_vector / np.linalg.norm(taste_vector)
-    _, indices = index.search(np.array([taste_vector]), 1000)
+    similarity_scores = np.dot(embeddings, taste_vector)
 
+    # Apply soft penalty for disliked movies
+    disliked_ids = list(set(payload.seen_ids) - set(payload.liked_ids))
+    penalty_weight = 0.1
+    for mid in disliked_ids:
+        idx = df.index[df["id"] == mid]
+        if not idx.empty:
+            disliked_vec = embeddings[idx[0]]
+            sims = np.dot(embeddings, disliked_vec)
+            similarity_scores -= penalty_weight * sims
+
+    sorted_indices = np.argsort(similarity_scores)[::-1]
     genre_counts = {}
 
-    for idx in indices[0]:
+    for idx in sorted_indices:
         movie = df.iloc[idx]
         if movie["id"] in seen_set:
             continue
