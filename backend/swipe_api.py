@@ -1,14 +1,13 @@
 import os
 import numpy as np
 import pandas as pd
-import faiss
-
 from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional
 from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
+import faiss
+import random
 
 # === Paths ===
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -19,6 +18,7 @@ EMBEDDING_PATH = os.path.join(BASE_DIR, "data", "movie_embeddings_v11.npy")
 df = pd.read_csv(DATA_PATH)
 df.fillna('', inplace=True)
 
+# Combine metadata fields into a single text input for embedding
 df['metadata'] = (
     df['genres'] + ' ' +
     df['keywords'] + ' ' +
@@ -27,23 +27,14 @@ df['metadata'] = (
     df['spoken_languages']
 ).str.lower()
 
-# === Load or Generate Embeddings ===
+# === Load Embeddings ===
 model = SentenceTransformer("all-MiniLM-L6-v2")
+embeddings = np.load(EMBEDDING_PATH)
+embeddings = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
 
-if os.path.exists(EMBEDDING_PATH):
-    embeddings = np.load(EMBEDDING_PATH)
-else:
-    embeddings = model.encode(df['metadata'].tolist(), show_progress_bar=True)
-    embeddings = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
-    np.save(EMBEDDING_PATH, embeddings)
-
-# Normalize embeddings
-embeddings = embeddings.astype('float32')
-normalized_embeddings = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
-
-# === FAISS Index Setup ===
-faiss_index = faiss.IndexFlatIP(normalized_embeddings.shape[1])
-faiss_index.add(normalized_embeddings)
+# === Build FAISS Index ===
+index = faiss.IndexFlatIP(embeddings.shape[1])
+index.add(embeddings)
 
 # === FastAPI Setup ===
 app = FastAPI()
@@ -57,9 +48,9 @@ app.add_middleware(
 
 # === Request Models ===
 class RecommendPayload(BaseModel):
-    user_vector: Optional[List[float]] = None
-    seen_ids: List[int]
-    liked_ids: List[int]
+    user_vector: Optional[list] = None
+    seen_ids: list[int]
+    liked_ids: list[int]
     genre: Optional[str] = None
     language: Optional[str] = None
     year_start: Optional[int] = None
@@ -67,61 +58,42 @@ class RecommendPayload(BaseModel):
     adult: Optional[bool] = None
 
 class FeedbackPayload(BaseModel):
-    user_vector: Optional[List[float]] = None
+    user_vector: Optional[list] = None
     movie_id: int
     feedback: str
-
-# === Helper ===
-def get_year(release_date: str) -> Optional[int]:
-    try:
-        return pd.to_datetime(release_date, errors='coerce').year
-    except:
-        return None
 
 # === Recommendation Endpoint ===
 @app.post("/recommend")
 def recommend(payload: RecommendPayload):
-    # === Compute Taste Vector ===
-    if not payload.user_vector and payload.liked_ids:
-        liked_indices = [df.index[df["id"] == mid][0] for mid in payload.liked_ids if not df.index[df["id"] == mid].empty]
-        vectors = embeddings[liked_indices] if liked_indices else embeddings
-        taste_vector = np.mean(vectors, axis=0)
-    else:
-        taste_vector = np.array(payload.user_vector if payload.user_vector else embeddings.mean(axis=0))
-
-    taste_vector = taste_vector / np.linalg.norm(taste_vector)
-    taste_vector = taste_vector.astype('float32')
-
-    # === Penalize Disliked Movies ===
-    disliked_ids = [mid for mid in payload.seen_ids if mid not in payload.liked_ids]
-    disliked_indices = [df.index[df["id"] == mid][0] for mid in disliked_ids if not df.index[df["id"] == mid].empty]
-
-    if disliked_indices:
-        disliked_vecs = embeddings[disliked_indices]
-        sims_to_disliked = cosine_similarity(disliked_vecs, embeddings)
-        # Do FAISS search first to get similarity scores
-        D, I = faiss_index.search(np.array([taste_vector]), 1000)
-        similarity_scores = D[0]
-        candidate_indices = I[0]
-
-        # Penalize similarity scores for disliked movies
-        if disliked_indices:
-            disliked_vecs = embeddings[disliked_indices]
-            sims_to_disliked = cosine_similarity(disliked_vecs, embeddings[candidate_indices])  # shape: (n_disliked, top_k)
-            penalty = 0.3 * sims_to_disliked.mean(axis=0)  # shape: (top_k,)
-            similarity_scores -= penalty
-
-        taste_vector = taste_vector / np.linalg.norm(taste_vector)
-
-    # === Search Top-N Neighbors ===
-    D, I = faiss_index.search(np.array([taste_vector]), 200)
-
     seen_set = set(payload.seen_ids + payload.liked_ids)
 
-    # === Filter Results ===
-    for idx in I[0]:
+    if payload.liked_ids:
+        vectors = [embeddings[idx] for mid in payload.liked_ids for idx in df.index[df["id"] == mid]]
+        taste_vector = np.mean(vectors, axis=0) if vectors else embeddings.mean(axis=0)
+    else:
+        # Fallback to popular movie
+        candidates = df[df['popularity'] > df['popularity'].quantile(0.9)]
+        movie = candidates.sample(1).iloc[0]
+        return {
+            "movie": {
+                "movieId": int(movie["id"]),
+                "title": movie["title"],
+                "genres": movie["genres"],
+                "overview": movie["overview"],
+                "release_date": movie["release_date"],
+                "poster_path": "https://image.tmdb.org/t/p/w185" + movie.get("poster_path", ""),
+            },
+            "user_vector": None
+        }
+
+    taste_vector = taste_vector / np.linalg.norm(taste_vector)
+    _, indices = index.search(np.array([taste_vector]), 1000)
+
+    genre_counts = {}
+
+    for idx in indices[0]:
         movie = df.iloc[idx]
-        if int(movie["id"]) in seen_set:
+        if movie["id"] in seen_set:
             continue
 
         if payload.genre and payload.genre.lower() not in movie["genres"].lower():
@@ -131,11 +103,22 @@ def recommend(payload: RecommendPayload):
         if payload.adult is not None and bool(movie.get("adult", False)) != payload.adult:
             continue
 
-        year = get_year(movie["release_date"])
+        try:
+            year = pd.to_datetime(movie["release_date"], errors="coerce").year
+        except:
+            year = None
+
         if payload.year_start and (year is None or year < payload.year_start):
             continue
         if payload.year_end and (year is None or year > payload.year_end):
             continue
+
+        movie_genres = movie["genres"].lower().split(',')
+        primary_genre = movie_genres[0].strip() if movie_genres else None
+        if primary_genre:
+            genre_counts[primary_genre] = genre_counts.get(primary_genre, 0) + 1
+            if genre_counts[primary_genre] > 5:
+                continue
 
         return {
             "movie": {
@@ -153,32 +136,8 @@ def recommend(payload: RecommendPayload):
 
 # === Feedback Endpoint ===
 @app.post("/feedback")
-def feedback(payload: FeedbackPayload):
-    vec = np.array(payload.user_vector if payload.user_vector else embeddings.mean(axis=0))
-    idx = df.index[df["id"] == payload.movie_id]
-    if idx.empty:
-        return {"error": "Movie not found"}
-
-    movie_vec = embeddings[idx[0]]
-    alpha = 0.2
-
-    print("\n--- Feedback Debug ---")
-    print("Feedback:", payload.feedback)
-    print("Movie ID:", payload.movie_id)
-    print("Before similarity:", cosine_similarity([vec], [movie_vec])[0][0])
-
-    if payload.feedback == "like":
-        updated = (1 - alpha) * vec + alpha * movie_vec
-    elif payload.feedback == "dislike":
-        updated = vec - alpha * movie_vec
-    else:
-        return {"error": "Invalid feedback type"}
-
-    updated = updated / np.linalg.norm(updated)
-    print("After similarity:", cosine_similarity([updated], [movie_vec])[0][0])
-    print("--- End Debug ---\n")
-
-    return {"user_vector": updated.tolist()}
+def feedback(_: FeedbackPayload):
+    return {"user_vector": None}  # now stateless
 
 # === Search Endpoint ===
 @app.post("/search")

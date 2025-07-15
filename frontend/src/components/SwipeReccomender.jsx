@@ -23,21 +23,19 @@ export default function SwipeRecommender({ preLikedIds }) {
 
   useEffect(() => {
     if (preLikedIds) {
-      fetchRecommendation(userVector, seenIds, preLikedIds);
+      fetchRecommendation(seenIds, preLikedIds);
     }
   }, [preLikedIds]);
 
-  const fetchRecommendation = async (vector, seen, liked) => {
+  const fetchRecommendation = async (seen, liked) => {
     try {
       setLoading(true);
       setError(null);
-      setCurrentMovie(null); // clear immediately to show loading state
 
       const res = await fetch('http://localhost:8000/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_vector: vector,
           seen_ids: seen,
           liked_ids: liked,
           genre,
@@ -55,14 +53,7 @@ export default function SwipeRecommender({ preLikedIds }) {
         return;
       }
 
-      const text = await res.text();
-      if (!text) {
-        setError('Empty response from backend');
-        console.error('❌ No content returned from /recommend');
-        return;
-      }
-
-      const data = JSON.parse(text);
+      const data = await res.json();
 
       if (!data.error) {
         setCurrentMovie(data.movie);
@@ -81,64 +72,41 @@ export default function SwipeRecommender({ preLikedIds }) {
 
   const sendFeedback = async (movieId, feedbackType) => {
     try {
-      const res = await fetch('http://localhost:8000/feedback', {
+      await fetch('http://localhost:8000/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           movie_id: movieId,
           feedback: feedbackType,
-          user_vector: userVector,
         }),
       });
-
-      const data = await res.json();
-      if (data.user_vector) {
-        setUserVector(data.user_vector);
-        return data.user_vector;
-      }
     } catch (err) {
       console.error('❌ Feedback error:', err);
     }
-    return userVector; // fallback
   };
 
   const handleLike = async () => {
     if (!currentMovie) return;
     const id = currentMovie.movieId;
-
+    await sendFeedback(id, 'like');
     const updatedSeen = [...seenIds, id];
     const updatedLiked = [...likedIds, id];
     setSeenIds(updatedSeen);
     setLikedIds(updatedLiked);
-
-    setLoading(true);
-    setCurrentMovie(null);
-
-    const feedbackPromise = sendFeedback(id, 'like');
-    const updatedVector = await feedbackPromise;
-
-    await fetchRecommendation(updatedVector, updatedSeen, updatedLiked);
+    await fetchRecommendation(updatedSeen, updatedLiked);
   };
 
   const handleDislike = async () => {
     if (!currentMovie) return;
     const id = currentMovie.movieId;
-
+    await sendFeedback(id, 'dislike');
     const updatedSeen = [...seenIds, id];
     setSeenIds(updatedSeen);
-
-    setLoading(true);
-    setCurrentMovie(null);
-
-    const feedbackPromise = sendFeedback(id, 'dislike');
-    const updatedVector = await feedbackPromise;
-
-    await fetchRecommendation(updatedVector, updatedSeen, likedIds);
+    await fetchRecommendation(updatedSeen, likedIds);
   };
 
   return (
     <div style={{ maxWidth: '640px', margin: '0 auto' }}>
-      {/* === Filters === */}
       <div style={{ display: 'grid', gap: '12px', marginBottom: '16px' }}>
         <select value={genre} onChange={(e) => setGenre(e.target.value)}>
           <option value="">All Genres</option>
@@ -166,7 +134,7 @@ export default function SwipeRecommender({ preLikedIds }) {
         </label>
 
         <button
-          onClick={() => fetchRecommendation(userVector, seenIds, likedIds)}
+          onClick={() => fetchRecommendation(seenIds, likedIds)}
           style={{ background: '#3b82f6', color: 'white', padding: '8px', borderRadius: '8px' }}
         >
           🔍 Apply Filters
@@ -174,7 +142,7 @@ export default function SwipeRecommender({ preLikedIds }) {
       </div>
 
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      {loading && <p>Loading next movie...</p>}
+      {loading && <p>Loading...</p>}
 
       {currentMovie && !loading && (
         <SwipeCard onSwipeLeft={handleDislike} onSwipeRight={handleLike}>
