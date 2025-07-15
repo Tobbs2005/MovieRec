@@ -11,6 +11,7 @@ export default function MovieCard({ movie, liked, onClick }) {
           src={movie.poster_path}
           alt={`${movie.title} poster`}
           className={styles.poster}
+          loading="lazy"
         />
       ) : (
         <div className={styles.poster}>No Poster</div>
