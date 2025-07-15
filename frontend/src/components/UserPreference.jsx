@@ -2,6 +2,7 @@ import { useState } from 'react';
 import MovieCard from './MovieCard';
 import style from './UserPreference.module.css';
 
+
 const GENRES = [
   "Action", "Adventure", "Animation", "Children", "Comedy", "Crime",
   "Documentary", "Drama", "Fantasy", "Film-Noir", "Horror", "Musical",
@@ -105,18 +106,15 @@ export default function UserPreference({ onStart }) {
       />
     </div>
 
-    <label className={style.checkboxRow}>
-      <input
-        type="checkbox"
-        checked={adult}
-        onChange={(e) => setAdult(e.target.checked)}
-      />
-      Include adult content
-    </label>
-
     <button onClick={handleSearch} className={style.searchButton}>
       🔍 Search
     </button>
+    <button
+          onClick={() => onStart(likedIds)}
+          className={style.startButton}
+        >
+          🚀 Start Swiping
+        </button>
 
     {loading && <p>Loading...</p>}
     {error && <p className={style.error}>{error}</p>}
@@ -132,14 +130,9 @@ export default function UserPreference({ onStart }) {
             onClick={() => toggleLike(movie.movieId)}
           />
         ))}
-        <button
-          onClick={() => onStart(likedIds)}
-          className={style.startButton}
-        >
-          🚀 Start Swiping
-        </button>
       </div>
     )}
+    
   </div>
 );
 }

@@ -1,24 +1,19 @@
-import { useState } from 'react';
-import UserPreference from './components/UserPreference';
-import SwipeRecommender from './components/SwipeReccomender';
-import './App.css'; 
+import React, { useState } from 'react';
+import Sidebar from './components/Sidebar';
+import './App.css';
+import Home from './pages/Home';
+import UserMovieList from './components/UserMovieList';
 
 export default function App() {
-  const [likedIds, setLikedIds] = useState([]);
-  const [started, setStarted] = useState(false);
-
-  const handleStartSwiping = (initialLikedIds) => {
-    setLikedIds(initialLikedIds);
-    setStarted(true);
-  };
+  const [route, setRoute] = useState('/');
 
   return (
-    <div className="app-container">
-      {!started ? (
-        <UserPreference onStart={handleStartSwiping} />
-      ) : (
-        <SwipeRecommender preLikedIds={likedIds} />
-      )}
+    <div className="layout">
+      <Sidebar route={route} setRoute={setRoute} />
+      <main className="main-content">
+        {route === '/' && <Home />}
+        {route === '/mymovies' && <UserMovieList />}
+      </main>
     </div>
   );
 }

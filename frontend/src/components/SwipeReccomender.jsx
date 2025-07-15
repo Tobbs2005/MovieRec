@@ -12,6 +12,7 @@ export default function SwipeRecommender({ preLikedIds }) {
   const [userVector, setUserVector] = useState(null);
   const [seenIds, setSeenIds] = useState([]);
   const [likedIds, setLikedIds] = useState(preLikedIds || []);
+  const [watchLater, setWatchLater] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -105,6 +106,23 @@ export default function SwipeRecommender({ preLikedIds }) {
     await fetchRecommendation(updatedSeen, likedIds);
   };
 
+  const handleWatchLater = async () => {
+    if (!currentMovie) return;
+    const id = currentMovie.movieId;
+    const updatedSeen = [...seenIds, id];
+    setWatchLater((prev) => [...prev, id]);
+    setSeenIds(updatedSeen);
+    await fetchRecommendation(updatedSeen, likedIds);
+  };
+
+  const handleSkip = async () => {
+    if (!currentMovie) return;
+    const id = currentMovie.movieId;
+    const updatedSeen = [...seenIds, id];
+    setSeenIds(updatedSeen);
+    await fetchRecommendation(updatedSeen, likedIds);
+  };
+
   return (
     <div style={{ maxWidth: '640px', margin: '0 auto' }}>
       <div style={{ display: 'grid', gap: '12px', marginBottom: '16px' }}>
@@ -129,10 +147,6 @@ export default function SwipeRecommender({ preLikedIds }) {
           <input type="number" min="1900" max="2025" value={yearEnd} onChange={(e) => setYearEnd(Number(e.target.value))} />
         </div>
 
-        <label>
-          <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} /> Include adult content
-        </label>
-
         <button
           onClick={() => fetchRecommendation(seenIds, likedIds)}
           style={{ background: '#3b82f6', color: 'white', padding: '8px', borderRadius: '8px' }}
@@ -145,9 +159,20 @@ export default function SwipeRecommender({ preLikedIds }) {
       {loading && <p>Loading...</p>}
 
       {currentMovie && !loading && (
-        <SwipeCard onSwipeLeft={handleDislike} onSwipeRight={handleLike}>
-          <MovieCard movie={currentMovie} liked={likedIds.includes(currentMovie.movieId)} />
-        </SwipeCard>
+        <div>
+          <SwipeCard onSwipeLeft={handleDislike} onSwipeRight={handleLike}>
+            <MovieCard movie={currentMovie} liked={likedIds.includes(currentMovie.movieId)} />
+          </SwipeCard>
+
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '12px' }}>
+            <button onClick={handleWatchLater} style={{ background: '#facc15', padding: '8px', borderRadius: '8px' }}>
+              ⭐ Add to Watch Later
+            </button>
+            <button onClick={handleSkip} style={{ background: '#e5e7eb', padding: '8px', borderRadius: '8px' }}>
+              ⏭️ Skip
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

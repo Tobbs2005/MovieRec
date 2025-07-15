@@ -48,3 +48,23 @@
   justify-content: center;
   align-items: center;
 }
+
+nav a {
+  text-decoration: none;
+  font-weight: bold;
+  color: #3b82f6;
+}
+nav a:hover {
+  text-decoration: underline;
+}
+
+.app-layout {
+  display: flex;
+}
+
+.main-content {
+  flex: 1;
+  padding: 24px;
+  min-height: 100vh;
+  background-color: #242424;
+}

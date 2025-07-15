@@ -68,10 +68,11 @@ def recommend(payload: RecommendPayload):
     seen_set = set(payload.seen_ids + payload.liked_ids)
 
     # Onboarding mode: < 5 liked movies
+    # Onboarding mode: < 5 liked movies
     if len(payload.liked_ids) < 5:
-        popular = df[df['popularity'] > df['popularity'].quantile(0.95)]
-        diverse_pool = popular.drop_duplicates(subset='genres')
-        sampled = diverse_pool.sample(n=min(50, len(diverse_pool)), random_state=random.randint(0, 10000))
+        top_voted = df.sort_values(by="vote_count", ascending=False).head(100)
+        sampled = top_voted.sample(n=min(30, len(top_voted)), random_state=random.randint(0, 9999))
+
         for _, movie in sampled.iterrows():
             if movie['id'] not in seen_set:
                 return {

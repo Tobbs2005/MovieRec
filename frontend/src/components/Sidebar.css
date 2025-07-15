@@ -1,0 +1,41 @@
+.sidebar {
+  width: 200px;
+  background-color: #1a1a1a;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.sidebar.collapsed {
+  width: 50px;
+}
+
+.collapse-btn {
+  margin-bottom: 12px;
+  background: #333;
+  color: white;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.nav button {
+  display: block;
+  background: transparent;
+  border: none;
+  color: white;
+  margin: 8px 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nav button:hover {
+  color: #61dafb;
+}
+
