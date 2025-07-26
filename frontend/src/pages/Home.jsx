@@ -14,7 +14,6 @@ export default function Home() {
 
   return (
     <div>
-      
       {!started ? (
         <UserPreference onStart={handleStartSwiping} />
       ) : (

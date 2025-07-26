@@ -65,6 +65,7 @@ nav a:hover {
 .main-content {
   flex: 1;
   padding: 24px;
+  width:80vw;
   min-height: 100vh;
   background-color: #242424;
 }

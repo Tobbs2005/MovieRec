@@ -1,0 +1,66 @@
+.filterBar {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #23272f;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(20,20,20,0.18);
+}
+
+.select,
+.input {
+  background: #2d323b;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 1rem;
+  color: #eaeaea;
+  outline: none;
+  transition: box-shadow 0.2s;
+  box-shadow: 0 1px 4px rgba(20,20,20,0.10);
+}
+
+.select:focus,
+.input:focus {
+  box-shadow: 0 0 0 2px #444b57;
+}
+
+.yearRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #eaeaea;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  color: #eaeaea;
+}
+
+.checkbox {
+  accent-color: #444b57;
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+}
+
+.button {
+  background: #444b57;
+  color: #eaeaea;
+  padding: 10px 20px;
+  border-radius: 14px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 1px 4px rgba(20,20,20,0.18);
+}
+
+.button:hover {
+  background: #353a44;
+}

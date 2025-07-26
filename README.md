@@ -1,8 +1,4 @@
-Here's a clean and clear `README.md` file you can use for your project:
 
----
-
-````markdown
 # 🎬 Movie Recommender App
 
 A Tinder-style movie recommendation system powered by FastAPI, sentence-transformers, and a React frontend.
