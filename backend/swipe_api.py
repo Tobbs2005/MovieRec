@@ -68,7 +68,6 @@ def recommend(payload: RecommendPayload):
     seen_set = set(payload.seen_ids + payload.liked_ids)
 
     # Onboarding mode: < 5 liked movies
-    # Onboarding mode: < 5 liked movies
     if len(payload.liked_ids) < 5:
         top_voted = df.sort_values(by="vote_count", ascending=False).head(100)
         sampled = top_voted.sample(n=min(30, len(top_voted)), random_state=random.randint(0, 9999))

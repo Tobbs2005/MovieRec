@@ -3,7 +3,8 @@
 .bigCard {
   position: relative;
   width: 100%;
-  height: 80vh;
+  height: 90vh;
+  aspect-ratio: 2/3;
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;
@@ -35,18 +36,25 @@
   position: relative;
   z-index: 2;
   margin: 32px;
-  padding: 24px 32px;
+  padding: 24px;
   background: var(--color-bg-overlay, rgba(0,0,0,0.65));
   border-radius: 12px;
   color: var(--color-text-main, #eaeaea);
-  max-width: 480px;
+  width: 100%;
   box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  opacity: 0.3;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.info:hover {
+  opacity: 1;
+  transform: scale(1.03);
 }
 
 .title {
-  font-size: 2.2rem;
+  font-size: 1.5rem;
   font-weight: bold;
-  margin-bottom: 12px;
+  margin: 12px;
   display: flex;
   align-items: center;
   color: var(--color-text-main, #eaeaea);
@@ -67,11 +75,12 @@
 
 .overview {
   margin-bottom: 16px;
-  font-size: 1.05rem;
+  font-size: 1rem;
   color: var(--color-text-main, #eaeaea);
 }
 
 .release {
   font-size: 1rem;
   color: var(--color-text-muted, #ccc);
+  margin: 12px;
 }

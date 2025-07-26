@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import MovieCard from './MovieCard';
 import SwipeCard from './SwipeCard';
 import BigMovieCard from './BigMovieCard';
 import MovieFilterBar from './MovieFilterBar';
@@ -10,12 +9,16 @@ import styles from './SwipeReccomender.module.css';
 const genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Thriller', 'Animation', 'Science Fiction', 'Fantasy'];
 const languages = ['en', 'fr', 'es', 'ja', 'ko', 'zh', 'de', 'hi'];
 
-export default function SwipeRecommender({ preLikedIds }) {
+export default function SwipeRecommender({
+  preLikedIds,
+  handleLike,
+  handleDislike,
+  handleSave,
+}) {
   const [currentMovie, setCurrentMovie] = useState(null);
   const [userVector, setUserVector] = useState(null);
   const [seenIds, setSeenIds] = useState([]);
   const [likedIds, setLikedIds] = useState(preLikedIds || []);
-  const [watchLater, setWatchLater] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -52,7 +55,6 @@ export default function SwipeRecommender({ preLikedIds }) {
 
       if (!res.ok) {
         const text = await res.text();
-        console.error('❌ Backend error:', res.status, text);
         setError(`Error ${res.status}: ${text}`);
         return;
       }
@@ -67,7 +69,6 @@ export default function SwipeRecommender({ preLikedIds }) {
         setCurrentMovie(null);
       }
     } catch (err) {
-      console.error('❌ JSON parse or network error:', err);
       setError('Unexpected response format or connection error');
     } finally {
       setLoading(false);
@@ -85,11 +86,12 @@ export default function SwipeRecommender({ preLikedIds }) {
         }),
       });
     } catch (err) {
-      console.error('❌ Feedback error:', err);
+      // Feedback error handling
     }
   };
 
-  const handleLike = async () => {
+  // Updated handlers to call global handlers with movie object
+  const handleLikeClick = async () => {
     if (!currentMovie) return;
     const id = currentMovie.movieId;
     await sendFeedback(id, 'like');
@@ -97,24 +99,26 @@ export default function SwipeRecommender({ preLikedIds }) {
     const updatedLiked = [...likedIds, id];
     setSeenIds(updatedSeen);
     setLikedIds(updatedLiked);
+    handleLike(id, currentMovie); // <-- call global handler
     await fetchRecommendation(updatedSeen, updatedLiked);
   };
 
-  const handleDislike = async () => {
+  const handleDislikeClick = async () => {
     if (!currentMovie) return;
     const id = currentMovie.movieId;
     await sendFeedback(id, 'dislike');
     const updatedSeen = [...seenIds, id];
     setSeenIds(updatedSeen);
+    handleDislike(id, currentMovie); // <-- call global handler
     await fetchRecommendation(updatedSeen, likedIds);
   };
 
-  const handleWatchLater = async () => {
+  const handleWatchLaterClick = async () => {
     if (!currentMovie) return;
     const id = currentMovie.movieId;
     const updatedSeen = [...seenIds, id];
-    setWatchLater((prev) => [...prev, id]);
     setSeenIds(updatedSeen);
+    handleSave(id, currentMovie); // <-- call global handler
     await fetchRecommendation(updatedSeen, likedIds);
   };
 
@@ -151,15 +155,22 @@ export default function SwipeRecommender({ preLikedIds }) {
 
       {currentMovie && !loading && (
         <div className={styles.swipeCardWrapper}>
-          <SwipeCard onSwipeLeft={handleDislike} onSwipeRight={handleLike}>
+          <SwipeCard onSwipeLeft={handleDislikeClick} onSwipeRight={handleLikeClick}>
             <BigMovieCard movie={currentMovie} liked={likedIds.includes(currentMovie.movieId)} />
           </SwipeCard>
         </div>
       )}
 
+      {/* On boarding note */}
+      {likedIds.length < 5 && (
+        <div className={styles.learningNote}>
+          The algorithm is still learning your taste...
+        </div>
+      )}
+
       {currentMovie && !loading && (
         <div className={styles.actionButtons}>
-          <button onClick={handleWatchLater}>
+          <button onClick={handleWatchLaterClick}>
             ⭐ Add to Watch Later
           </button>
           <button onClick={handleSkip}>
@@ -167,6 +178,7 @@ export default function SwipeRecommender({ preLikedIds }) {
           </button>
         </div>
       )}
+      
     </div>
   );
 }

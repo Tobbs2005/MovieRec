@@ -1,10 +1,15 @@
-import { useState } from 'react';
 import SwipeRecommender from '../components/SwipeReccomender';
 import SearchBar from '../components/SearchBar';
+import { useState } from 'react';
 
 
-export default function Home() {
-  const [likedIds, setLikedIds] = useState([]);
+export default function Home({
+  likedIds,
+  setLikedIds,
+  handleLike,
+  handleDislike,
+  handleSave,
+}) {
   const [started, setStarted] = useState(false);
 
   const handleStartSwiping = (initialLikedIds) => {
@@ -17,7 +22,12 @@ export default function Home() {
       {!started ? (
         <SearchBar onStart={handleStartSwiping} />
       ) : (
-        <SwipeRecommender preLikedIds={likedIds} />
+        <SwipeRecommender
+          preLikedIds={likedIds}
+          handleLike={handleLike}
+          handleDislike={handleDislike}
+          handleSave={handleSave}
+        />
       )}
     </div>
   );
