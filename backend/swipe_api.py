@@ -156,6 +156,7 @@ def feedback(_: FeedbackPayload):
     return {"user_vector": None}  # now stateless
 
 # === Search Endpoint ===
+
 @app.post("/search")
 def hybrid_search(
     query: str = Body(..., embed=True),
@@ -168,28 +169,39 @@ def hybrid_search(
     query_lower = query.lower()
     genre_lower = genre.lower() if genre else None
 
+    # --- Keyword Search ---
     results = df[
         df["title"].str.lower().str.contains(query_lower) |
         df["overview"].str.lower().str.contains(query_lower) |
         df["genres"].astype(str).str.lower().str.contains(query_lower)
     ]
 
-    if genre_lower:
-        results = results[results["genres"].astype(str).str.lower().str.contains(genre_lower)]
-    if language:
-        results = results[results["original_language"].astype(str) == language]
-    if year_start or year_end:
-        results = results[results["release_date"].notnull()]
-        results["release_year"] = pd.to_datetime(results["release_date"], errors='coerce').dt.year
-        if year_start:
-            results = results[results["release_year"] >= year_start]
-        if year_end:
-            results = results[results["release_year"] <= year_end]
-    if "adult" in results.columns and adult is not None:
-        if not adult:
-            results = results[results["adult"] == adult]
+    # --- Zero-shot Semantic Search ---
+    query_embedding = model.encode(query, normalize_embeddings=True)
+    scores = np.dot(embeddings, query_embedding)
+    top_semantic_indices = np.argsort(scores)[::-1][:10]
+    semantic_results = df.iloc[top_semantic_indices]
 
-    top_matches = results.head(5).to_dict(orient="records") if not results.empty else []
+    # --- Combine Results ---
+    combined = pd.concat([results, semantic_results]).drop_duplicates(subset="id")
+
+    # --- Apply Filters ---
+    if genre_lower:
+        combined = combined[combined["genres"].astype(str).str.lower().str.contains(genre_lower)]
+    if language:
+        combined = combined[combined["original_language"].astype(str) == language]
+    if year_start or year_end:
+        combined = combined[combined["release_date"].notnull()]
+        combined["release_year"] = pd.to_datetime(combined["release_date"], errors='coerce').dt.year
+        if year_start:
+            combined = combined[combined["release_year"] >= year_start]
+        if year_end:
+            combined = combined[combined["release_year"] <= year_end]
+    if "adult" in combined.columns and adult is not None:
+        if not adult:
+            combined = combined[combined["adult"] == adult]
+
+    top_matches = combined.head(5).to_dict(orient="records") if not combined.empty else []
     return {
         "movies": [
             {
