@@ -1,21 +1,23 @@
+@import '../styles/theme.css';
+
 .filterBar {
   display: grid;
   gap: 16px;
   margin-bottom: 24px;
   padding: 20px;
-  background: #23272f;
+  background: var(--color-bg-dark, #23272f);
   border-radius: 18px;
   box-shadow: 0 2px 12px rgba(20,20,20,0.18);
 }
 
 .select,
 .input {
-  background: #2d323b;
+  background: var(--color-bg-card, #2d323b);
   border: none;
   border-radius: 12px;
   padding: 10px 16px;
   font-size: 1rem;
-  color: #eaeaea;
+  color: var(--color-text-main, #eaeaea);
   outline: none;
   transition: box-shadow 0.2s;
   box-shadow: 0 1px 4px rgba(20,20,20,0.10);
@@ -23,14 +25,14 @@
 
 .select:focus,
 .input:focus {
-  box-shadow: 0 0 0 2px #444b57;
+  box-shadow: 0 0 0 2px var(--color-accent, #444b57);
 }
 
 .yearRow {
   display: flex;
   gap: 10px;
   align-items: center;
-  color: #eaeaea;
+  color: var(--color-text-main, #eaeaea);
 }
 
 .checkboxLabel {
@@ -38,19 +40,19 @@
   align-items: center;
   gap: 10px;
   font-size: 1rem;
-  color: #eaeaea;
+  color: var(--color-text-main, #eaeaea);
 }
 
 .checkbox {
-  accent-color: #444b57;
+  accent-color: var(--color-accent, #444b57);
   width: 18px;
   height: 18px;
   border-radius: 6px;
 }
 
 .button {
-  background: #444b57;
-  color: #eaeaea;
+  background: var(--color-accent, #444b57);
+  color: var(--color-text-main, #eaeaea);
   padding: 10px 20px;
   border-radius: 14px;
   border: none;
@@ -62,5 +64,5 @@
 }
 
 .button:hover {
-  background: #353a44;
+  background: var(--color-accent-hover, #353a44);
 }

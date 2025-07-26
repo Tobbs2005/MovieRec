@@ -1,4 +1,5 @@
-/* Normalize box model to avoid layout shifts from padding/borders */
+@import './styles/theme.css';
+
 *,
 *::before,
 *::after {
@@ -11,8 +12,8 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.848);
-  background-color: #242424;
+  color: var(--color-text-main, #eaeaea);
+  background-color: var(--color-bg-dark, #23272f);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -22,11 +23,11 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--color-accent, #444b57);
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: var(--color-accent-hover, #353a44);
 }
 
 body {
@@ -35,11 +36,14 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background: var(--color-bg-dark, #23272f);
+  color: var(--color-text-main, #eaeaea);
 }
 
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+  color: var(--color-text-main, #eaeaea);
 }
 
 button {
@@ -49,16 +53,17 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--color-accent, #444b57);
+  color: var(--color-text-main, #eaeaea);
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, background 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
 }
 button:hover {
-  border-color: #646cff;
+  border-color: var(--color-accent-hover, #353a44);
+  background: var(--color-accent-hover, #353a44);
 }
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 4px auto var(--color-accent, #444b57);
 }
-
-

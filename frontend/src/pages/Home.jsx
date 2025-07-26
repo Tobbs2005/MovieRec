@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import UserPreference from '../components/UserPreference';
 import SwipeRecommender from '../components/SwipeReccomender';
+import SearchBar from '../components/SearchBar';
 
 
 export default function Home() {
@@ -15,7 +15,7 @@ export default function Home() {
   return (
     <div>
       {!started ? (
-        <UserPreference onStart={handleStartSwiping} />
+        <SearchBar onStart={handleStartSwiping} />
       ) : (
         <SwipeRecommender preLikedIds={likedIds} />
       )}

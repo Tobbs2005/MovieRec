@@ -5,6 +5,7 @@ import MovieCard from './MovieCard';
 import SwipeCard from './SwipeCard';
 import BigMovieCard from './BigMovieCard';
 import MovieFilterBar from './MovieFilterBar';
+import styles from './SwipeReccomender.module.css';
 
 const genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Thriller', 'Animation', 'Science Fiction', 'Fantasy'];
 const languages = ['en', 'fr', 'es', 'ja', 'ko', 'zh', 'de', 'hi'];
@@ -126,41 +127,44 @@ export default function SwipeRecommender({ preLikedIds }) {
   };
 
   return (
- <div>
-      <MovieFilterBar
-        genres={genres}
-        languages={languages}
-        genre={genre}
-        setGenre={setGenre}
-        language={language}
-        setLanguage={setLanguage}
-        yearStart={yearStart}
-        setYearStart={setYearStart}
-        yearEnd={yearEnd}
-        setYearEnd={setYearEnd}
-        adult={adult}
-        setAdult={setAdult}
-        onApplyFilters={() => fetchRecommendation(seenIds, likedIds)}
-      />
+    <div className={styles.swipeContainer}>
+      <div className={styles.filterBarWrapper}>
+        <MovieFilterBar
+          genres={genres}
+          languages={languages}
+          genre={genre}
+          setGenre={setGenre}
+          language={language}
+          setLanguage={setLanguage}
+          yearStart={yearStart}
+          setYearStart={setYearStart}
+          yearEnd={yearEnd}
+          setYearEnd={setYearEnd}
+          adult={adult}
+          setAdult={setAdult}
+          onApplyFilters={() => fetchRecommendation(seenIds, likedIds)}
+        />
+      </div>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {loading && <p>Loading...</p>}
-
+      {error && <p className={styles.error}>{error}</p>}
+      {loading && <p className={styles.loading}>Loading...</p>}
 
       {currentMovie && !loading && (
-        <div>
+        <div className={styles.swipeCardWrapper}>
           <SwipeCard onSwipeLeft={handleDislike} onSwipeRight={handleLike}>
             <BigMovieCard movie={currentMovie} liked={likedIds.includes(currentMovie.movieId)} />
           </SwipeCard>
+        </div>
+      )}
 
-          <div>
-            <button onClick={handleWatchLater}>
-              ⭐ Add to Watch Later
-            </button>
-            <button onClick={handleSkip}>
-              ⏭️ Skip
-            </button>
-          </div>
+      {currentMovie && !loading && (
+        <div className={styles.actionButtons}>
+          <button onClick={handleWatchLater}>
+            ⭐ Add to Watch Later
+          </button>
+          <button onClick={handleSkip}>
+            ⏭️ Skip
+          </button>
         </div>
       )}
     </div>

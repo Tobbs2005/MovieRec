@@ -1,8 +1,12 @@
+@import './styles/theme.css';
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  background: var(--color-bg-dark, #23272f);
+  min-height: 100vh;
 }
 
 .logo {
@@ -12,7 +16,7 @@
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em var(--color-accent, #444b57));
 }
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
@@ -35,10 +39,14 @@
 
 .card {
   padding: 2em;
+  background: var(--color-bg-card, #2d323b);
+  border-radius: 16px;
+  box-shadow: var(--color-shadow, 0 8px 32px rgba(0,0,0,0.18));
+  color: var(--color-text-main, #eaeaea);
 }
 
 .read-the-docs {
-  color: #888;
+  color: var(--color-text-muted, #ccc);
 }
 
 .app-container {
@@ -47,15 +55,18 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  background: var(--color-bg-dark, #23272f);
 }
 
 nav a {
   text-decoration: none;
   font-weight: bold;
-  color: #3b82f6;
+  color: var(--color-accent, #444b57);
+  transition: color 0.2s;
 }
 nav a:hover {
   text-decoration: underline;
+  color: var(--color-accent-hover, #353a44);
 }
 
 .app-layout {
@@ -65,7 +76,10 @@ nav a:hover {
 .main-content {
   flex: 1;
   padding: 24px;
-  width:80vw;
+  width: 80vw;
   min-height: 100vh;
-  background-color: #242424;
+  background: var(--color-bg-card, #2d323b);
+  color: var(--color-text-main, #eaeaea);
+  border-radius: 18px;
+  box-shadow: var(--color-shadow, 0 8px 32px rgba(0,0,0,0.18));
 }
