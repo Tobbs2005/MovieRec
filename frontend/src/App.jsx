@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import './App.css';
 import Home from './pages/Home';
 import UserMovieList from './components/UserMovieList';
 
 export default function App() {
-  const [route, setRoute] = useState('/');
-
-  // Centralized movie states
+  // Movie state
   const [likedMovies, setLikedMovies] = useState([]);
   const [dislikedMovies, setDislikedMovies] = useState([]);
   const [savedMovies, setSavedMovies] = useState([]);
   const [likedIds, setLikedIds] = useState([]);
   const [dislikedIds, setDislikedIds] = useState([]);
 
-  // Handlers to update lists
-  const handleLike = (movieId, movieObj) => {
+  // Handlers to update movie lists
+  const handleMovieLike = (movieId, movieObj) => {
     if (!likedIds.includes(movieId)) {
       setLikedIds([...likedIds, movieId]);
       setLikedMovies([...likedMovies, movieObj]);
@@ -25,7 +24,7 @@ export default function App() {
     }
   };
 
-  const handleDislike = (movieId, movieObj) => {
+  const handleMovieDislike = (movieId, movieObj) => {
     if (!dislikedIds.includes(movieId)) {
       setDislikedIds([...dislikedIds, movieId]);
       setDislikedMovies([...dislikedMovies, movieObj]);
@@ -35,13 +34,13 @@ export default function App() {
     }
   };
 
-  const handleSave = (movieId, movieObj) => {
+  const handleMovieSave = (movieId, movieObj) => {
     if (!savedMovies.some(m => m.movieId === movieId)) {
       setSavedMovies([...savedMovies, movieObj]);
     }
   };
 
-  const handleRemove = (movieId) => {
+  const handleMovieRemove = (movieId) => {
     setLikedMovies(likedMovies.filter(m => m.movieId !== movieId));
     setDislikedMovies(dislikedMovies.filter(m => m.movieId !== movieId));
     setSavedMovies(savedMovies.filter(m => m.movieId !== movieId));
@@ -50,31 +49,42 @@ export default function App() {
   };
 
   return (
-    <div className="layout">
-      <Sidebar route={route} setRoute={setRoute} />
-      <main className="main-content">
-        {route === '/' && (
-          <Home
-            likedIds={likedIds}
-            setLikedIds={setLikedIds}
-            handleLike={handleLike}
-            handleDislike={handleDislike}
-            handleSave={handleSave}
-          />
-        )}
-        {route === '/mymovies' && (
-          <UserMovieList
-            likedMovies={likedMovies}
-            dislikedMovies={dislikedMovies}
-            savedMovies={savedMovies}
-            likedIds={likedIds}
-            dislikedIds={dislikedIds}
-            onLike={handleLike}
-            onDislike={handleDislike}
-            onRemove={handleRemove}
-          />
-        )}
-      </main>
-    </div>
+    <Router>
+      <div className="layout">
+        <Sidebar />
+        <main className="main-content">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <Home
+                  likedIds={likedIds}
+                  setLikedIds={setLikedIds}
+                  handleLike={handleMovieLike}
+                  handleDislike={handleMovieDislike}
+                  handleSave={handleMovieSave}
+                />
+              }
+            />
+            <Route
+              path="/mymovies"
+              element={
+                <UserMovieList
+                  likedMovies={likedMovies}
+                  dislikedMovies={dislikedMovies}
+                  savedMovies={savedMovies}
+                  likedIds={likedIds}
+                  dislikedIds={dislikedIds}
+                  onLike={handleMovieLike}
+                  onDislike={handleMovieDislike}
+                  onRemove={handleMovieRemove}
+                />
+              }
+            />
+
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }

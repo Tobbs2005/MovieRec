@@ -53,6 +53,8 @@
   font-size: 1.05rem;
   font-weight: 500;
   transition: background 0.2s, color 0.2s;
+  width: 150px;
+  text-align: center;
 }
 
 .nav button:hover {

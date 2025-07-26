@@ -69,12 +69,7 @@ nav a:hover {
   color: var(--color-accent-hover, #353a44);
 }
 
-.app-layout {
-  display: flex;
-}
-
 .main-content {
-  flex: 1;
   padding: 24px;
   width: 80vw;
   min-height: 100vh;

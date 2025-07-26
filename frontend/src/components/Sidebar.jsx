@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 
-const Sidebar = ({ route, setRoute }) => {
+const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
 
   return (
     <div className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
@@ -11,8 +13,12 @@ const Sidebar = ({ route, setRoute }) => {
       </button>
       {!collapsed && (
         <nav className="nav">
-          <button onClick={() => setRoute('/')}>Home</button>
-          <button onClick={() => setRoute('/mymovies')}>My Movies</button>
+          <Link to="/">
+            <button className={location.pathname.startsWith('/') ? 'active' : ''}>Swipe</button>
+          </Link>
+          <Link to="/mymovies">
+            <button className={location.pathname === '/mymovies' ? 'active' : ''}>My Movies</button>
+          </Link>
         </nav>
       )}
     </div>
