@@ -1,8 +1,4 @@
-'use client';
-
-import React from 'react';
-
-const Section = ({ title, movies, onLike, onDislike, onRemove, likedIds, dislikedIds }) => {
+const MovieList = ({ title, movies, onLike, onDislike, onRemove, likedIds, dislikedIds }) => {
   return (
     <div style={{ marginBottom: '24px' }}>
       <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '8px' }}>{title}</h2>
@@ -35,47 +31,4 @@ const Section = ({ title, movies, onLike, onDislike, onRemove, likedIds, dislike
   );
 };
 
-const UserMovieList = ({
-  likedMovies = [],
-  dislikedMovies = [],
-  savedMovies = [],
-  likedIds = [],
-  dislikedIds = [],
-  onLike,
-  onDislike,
-  onRemove,
-}) => {
-  return (
-    <div style={{ padding: '16px', maxWidth: '700px', margin: '0 auto' }}>
-      <Section
-        title="🎯 Liked Movies"
-        movies={likedMovies}
-        onLike={onLike}
-        onDislike={onDislike}
-        onRemove={onRemove}
-        likedIds={likedIds}
-        dislikedIds={dislikedIds}
-      />
-      <Section
-        title="👎 Disliked Movies"
-        movies={dislikedMovies}
-        onLike={onLike}
-        onDislike={onDislike}
-        onRemove={onRemove}
-        likedIds={likedIds}
-        dislikedIds={dislikedIds}
-      />
-      <Section
-        title="🎬 Watch Later"
-        movies={savedMovies}
-        onLike={onLike}
-        onDislike={onDislike}
-        onRemove={onRemove}
-        likedIds={likedIds}
-        dislikedIds={dislikedIds}
-      />
-    </div>
-  );
-};
-
-export default UserMovieList;
+export default MovieList;

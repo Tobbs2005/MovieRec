@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Sidebar from './components/Sidebar';
 import './App.css';
 import Home from './pages/Home';
-import UserMovieList from './components/UserMovieList';
+import UserMovieList from './components/MyMoviesDisplay';
 
 export default function App() {
   // Movie state
