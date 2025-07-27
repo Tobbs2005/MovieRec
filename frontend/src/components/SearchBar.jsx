@@ -54,6 +54,14 @@ export default function SearchBar({ onStart }) {
           🔍 Search
         </button>
       </div>
+      {
+        (searchResults.length == 0) && 
+        <div className={style.instructions}>
+          <p>
+            Search for your liked movies! Or start swiping immediately...
+          </p>
+        </div>
+      }
       <button
         onClick={() => onStart(likedIds)}
         className={style.startButton}

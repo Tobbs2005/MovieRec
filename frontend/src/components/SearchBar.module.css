@@ -14,7 +14,7 @@
   border-radius: 16px;
   box-shadow: var(--color-shadow, 0 4px 24px rgba(0,0,0,0.18));
   padding: 20px 24px;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
   gap: 16px;
 }
 
@@ -89,4 +89,10 @@
   margin-bottom: 12px;
   color: var(--color-text-main, #eaeaea);
   text-align: left;
+}
+
+.instructions p {
+  font-size: 0.8rem;
+  color: #444b57;
+  margin: 0px;
 }

@@ -20,7 +20,6 @@ export default function MovieCard({ movie, liked, onClick }) {
       <div className={styles.content}>
         <h3 className={styles.title}>
           {movie.title}
-          {liked && <span className={styles.check}>✅</span>}
         </h3>
 
         <p className={styles.genres}>

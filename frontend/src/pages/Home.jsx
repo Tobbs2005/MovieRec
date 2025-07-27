@@ -20,7 +20,10 @@ export default function Home({
   return (
     <div>
       {!started ? (
-        <SearchBar onStart={handleStartSwiping} />
+        <div className="part-one">
+          <SearchBar onStart={handleStartSwiping} />  
+          
+        </div>
       ) : (
         <SwipeRecommender
           preLikedIds={likedIds}
